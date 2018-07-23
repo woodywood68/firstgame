@@ -1,0 +1,156 @@
+/**
+ * 
+ */
+package graph;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Stack;
+import java.util.TreeSet;
+
+import util.GraphLoader;
+
+/**
+ * @author Woody
+ * 
+ * For the warm up assignment, you must implement your Graph in a class
+ * named CapGraph.  Here is the stub file.
+ *
+ */
+public class CapGraph implements Graph {
+
+	/* (non-Javadoc)
+	 * @see graph.Graph#addVertex(int)
+	 * 
+	 * 
+	 */
+	HashMap<CapNode, ArrayList<CapEdge>> graphed = new HashMap<>();
+	
+	public static void main(String[] args) {
+		CapGraph myGraph = new CapGraph();
+		String file = "small_test_graph.txt";
+		String filePath = "C:\\Users\\Lenovo\\Downloads\\_ccec8939af11b485cf7ded4c3b400cff_UCSDCapstoneCode"
+				+ "\\SocialNetworks\\data\\";
+		GraphLoader.loadGraph(myGraph, filePath+file);
+		System.out.println(myGraph);
+	}
+	
+	@Override
+	public String toString() {
+		return  String.valueOf(graphed.entrySet());
+	}
+
+	@Override
+	public void addVertex(int id) {
+		// TODO Auto-generated method stub
+		
+		this.graphed.put(new CapNode(id),new ArrayList<CapEdge>());
+	}
+
+	/* (non-Javadoc)
+	 * @see graph.Graph#addEdge(int, int)
+	 */
+	@Override
+	public void addEdge(int sender, int reciever) {
+		//hashSet() has been overriden for CapNode objects.
+		CapNode key = new CapNode(sender);
+		this.graphed.get(key).add(new CapEdge(reciever, sender));
+		key = new CapNode(reciever);
+		this.graphed.get(key).add(new CapEdge(sender,reciever));
+		
+
+	}
+	private List<CapEdge> getRecievers(List<CapEdge> inputEdges, CapNode sender) {
+		List<CapEdge> outputEdges = new ArrayList();
+		for(CapEdge ce : inputEdges) {
+			if (ce.getSender()==sender.getId()) {
+				outputEdges.add(ce);
+			}
+		}
+		
+		return outputEdges;
+		
+	}
+	 
+	private List<CapNode> getNodeFromEdges(List<CapEdge> recievers) {
+		List<CapNode> neighbours = new ArrayList();
+		for(CapEdge ce : recievers) {
+			neighbours.add(new CapNode(ce.getReciever()));
+			}
+		
+		
+		return neighbours;
+	}
+	/* (non-Javadoc)
+	 * @see graph.Graph#getEgonet(int)
+	 */
+	@Override
+	public Graph getEgonet(int center) {
+		// TODO Auto-generated method stub
+		//so find all links
+		CapNode centre = new CapNode(center);
+		Stack<CapNode> stack = new Stack<CapNode>();
+		HashSet<CapNode> visited = new HashSet();
+		List<CapNode> neighbours = new ArrayList<CapNode>();
+		stack.push(centre);
+		CapNode curr = null;
+		
+		while(!stack.empty()) {
+			 curr =  stack.pop();
+			 neighbours = getNodeFromEdges(getRecievers(graphed.get(curr), curr));
+			 for (CapNode cn : neighbours) {
+				 if (visited.contains(cn)) continue;
+				 stack.push(cn);
+				 visited.add(cn);
+			 }
+		}
+		//add these edges to stack and visited, pop from stack, getRecievers, not in visited add to stack,
+		
+		return visitedToGraph(visited);
+	}
+	
+	private Graph visitedToGraph(HashSet<CapNode> visited) {
+		//problem exists in that we don't really need seperate edge classes in this instance.
+		//could just have a list of nodes, and a node holds it's recievers and it's senders.
+		//could also have it so that you have a set, HashSet of CapNode objects which have sender, reciever data.
+		List<CapEdge> edges = new ArrayList<CapEdge>();
+		CapGraph subgraph = new CapGraph();
+		for (CapNode cn : visited) {
+			subgraph.addVertex(cn.getId());
+			for (CapEdge ce : graphed.get(cn)) {
+				edges.add(ce);
+			}
+		}
+		for (CapEdge ce : edges) {
+			subgraph.addEdge(ce.getSender(), ce.getReciever());
+		}
+		
+		
+		return subgraph;
+	}
+	/* (non-Javadoc)
+	 * @see graph.Graph#getSCCs()
+	 */
+	@Override
+	public List<Graph> getSCCs() {
+		//
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	/* (non-Javadoc)
+	 * @see graph.Graph#exportGraph()
+	 */
+	@Override
+	public HashMap<Integer, HashSet<Integer>> exportGraph() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+
+
+}
+
+
